@@ -89,7 +89,9 @@ cv::Mat performSobelOperation(cv::Mat& grayImage) {
             
             int p20 = row_above[x - 1];
             int p21 = row_above[x];
-            int p22 = row_above[x + 1]; 
+            int p22 = row_above[x + 1];
+
+                                                                                                                                                                                                                             
 
             int Gx = (-1 * p00) + (1 * p02) + (-2 * p10) + (2 * p12) + (-1 * p20) + (1 * p22);
             int Gy = (1 * p00) + ( 2 * p01) + (1 * p02) + (-1 * p20) + (-2 * p21) + (-1 * p22);
@@ -104,7 +106,7 @@ cv::Mat performSobelOperation(cv::Mat& grayImage) {
                 mag = 255;
             }
 
-            //sobelImage.at<unsigned char>(y, x) = G;
+            //sobelImage.at<unsigned char>(y, x) = mag;
             unsigned char* row = sobelImage.ptr<unsigned char>(y); 
             row[x] = mag; 
 
