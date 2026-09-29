@@ -2,9 +2,9 @@ CXX = g++
 CXXFLAGS = -O0 -Wall -Wextra $(shell pkg-config --cflags opencv4)
 LIBS = $(shell pkg-config --libs opencv4)
 
-TARGET = sobel_filter
-SRC = sobel_filter.cpp
-OBJ = sobel_filter.o 
+TARGET = lab4
+SRC = lab4.cpp
+OBJ = lab4.o 
 
 all: $(TARGET)
 

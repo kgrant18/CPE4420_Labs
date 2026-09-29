@@ -20,5 +20,6 @@ grayscale, then applies a Sobel edge-detection filter for edge detection
 
 cv::Mat generateGrayImage(cv::Mat& image);
 cv::Mat performSobelOperation(cv::Mat& grayImage); 
+cv::Mat performStreamingSobel(cv::Mat& frame);
 
 #endif // _SOBEL_FILTER_H
