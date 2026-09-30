@@ -63,7 +63,7 @@ cv::Mat generateGrayImage(cv::Mat& frame) {
 * param grayImage: cv::Mat&: The gray scale version of the original 4k video
 *
 * return: cv::Mat 
-*y
+*
 **************************************************************************/
 
 
@@ -116,31 +116,46 @@ cv::Mat performSobelOperation(cv::Mat& grayImage) {
     return sobelImage; 
 }
 
+/**************************************************************************
+* Function: performStreamingSobel
+* 
+* Description: combines grayscale + sobel operations into one function using only 3 row-buffers
+*              reduces the memory passes
+*
+* param grayImage: cv::Mat&: The current (color) frame being processed
+*
+* return: cv::Mat 
+*
+**************************************************************************/
 cv::Mat performStreamingSobel(cv::Mat& frame) {
     const int rows = frame.rows;
     const int cols = frame.cols; 
 
     // 3 rotating buffers
     std::vector<uchar>bufA(cols), bufB(cols), bufC(cols);
+
+    // buffer to store sobelImage
     cv::Mat sobelImage(rows, cols, CV_8UC1); 
 
     cv::Vec3b* srcRow0 = frame.ptr<cv::Vec3b>(0); 
     cv::Vec3b* srcRow1 = frame.ptr<cv::Vec3b>(1); 
     
-    //holds gray row y-1
+    // points to address of gray row y-1
     uchar* prev = bufA.data();
 
-    //holds gray row y
+    // points to address gray row y
     uchar* curr = bufB.data(); 
 
-    //holds gray row y+1
+    // points to address gray row y+1
     uchar* next = bufC.data(); 
 
     for (int x = 0; x < cols; x++) {
+        // converts first two rows to grayscale
         prev[x] = (54*srcRow0[x][2] + 183*srcRow0[x][1] + 19*srcRow0[x][0]) >> 8; 
         curr[x] = (54*srcRow1[x][2] + 183*srcRow1[x][1] + 19*srcRow1[x][0]) >> 8;
     }
-
+    
+    // main loop 
     for (int y = 2; y < rows; y++) {
         // convert color row y into the free buffer
         cv::Vec3b* src = frame.ptr<cv::Vec3b>(y); 
@@ -151,7 +166,7 @@ cv::Mat performStreamingSobel(cv::Mat& frame) {
         //prev=y-2, curr=y-1, next=y
         uchar* out = sobelImage.ptr<uchar>(y-1); 
         for (int x = 1; x < cols - 1; x++) {
-            // sobel operation 
+            // sobel operation per usual
             int p00 = prev[x-1]; 
             int p01 = prev[x]; 
             int p02 = prev[x+1]; 
