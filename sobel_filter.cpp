@@ -87,9 +87,9 @@ cv::Mat performSobelOperation(cv::Mat& grayImage) {
             int p11 = row_curr[x]; 
             int p12 = row_curr[x + 1]; 
             
-            int p20 = row_above[x - 1];
-            int p21 = row_above[x];
-            int p22 = row_above[x + 1];
+            int p20 = row_below[x - 1];
+            int p21 = row_below[x];
+            int p22 = row_below[x + 1];
 
                                                                                                                                                                                                                              
 
