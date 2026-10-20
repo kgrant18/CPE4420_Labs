@@ -26,11 +26,13 @@ grayscale, then applies a Sobel edge-detection filter
 
 cv::Mat generateGrayImage(cv::Mat& frame) {
     //create grayImage for storing gray frames/pixels
-    cv::Mat grayImage(frame.rows, frame.cols, CV_8UC1);
+    const int rows = frame.rows; 
+    const int columns = frame.cols; 
+    cv::Mat grayImage(rows, columns, CV_8UC1); 
 
     // to iterate over each pixel, need the x and y coordinates
-    for (int y = 0; y < frame.rows; y++) {
-        for (int x = 0; x < frame.cols; x++) {
+    for (int y = 0; y < rows; y++) {
+        for (int x = 0; x < columns; x++) {
             // Extract a pixel
             // cv::Vec3b pixel = frame.at<cv::Vec3b>(y, x);
             const cv::Vec3b* row_ptr = frame.ptr<cv::Vec3b>(y); 
@@ -70,14 +72,16 @@ cv::Mat generateGrayImage(cv::Mat& frame) {
 cv::Mat performSobelOperation(cv::Mat& grayImage) {
     //declare sobelImage for storing result
     cv::Mat sobelImage(grayImage.rows, grayImage.cols, CV_8UC1);
+    const int rows = grayImage.rows; 
+    const int columns = grayImage.cols; 
     
-    for (int y = 1; y < grayImage.rows - 1; y++) {
+    for (int y = 1; y < rows - 1; y++) {
         // get pointers to the 3 rows
         const unsigned char* row_above = grayImage.ptr<unsigned char>(y - 1);
         const unsigned char* row_curr = grayImage.ptr<unsigned char>(y); 
         const unsigned char* row_below = grayImage.ptr<unsigned char>(y + 1); 
 
-        for (int x = 1 ; x < grayImage.cols - 1; x++) {
+        for (int x = 1 ; x < columns - 1; x++) {
             // grab the 3x3 "neighborhood" of pixels
             int p00 = row_above[x - 1];
             int p01 = row_above[x]; 

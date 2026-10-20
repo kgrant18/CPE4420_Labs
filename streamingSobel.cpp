@@ -127,7 +127,7 @@ cv::Mat performSobelOperation(cv::Mat& grayImage) {
 * return: cv::Mat 
 *
 **************************************************************************/
-cv::Mat performStreamingSobel(cv::Mat& frame) {
+cv::Mat performStreamingSobel(cv::Mat& frame, int64 &grayTicks, int64 &sobelTicks) {
     const int rows = frame.rows;
     const int cols = frame.cols; 
 
@@ -149,20 +149,27 @@ cv::Mat performStreamingSobel(cv::Mat& frame) {
     // points to address gray row y+1
     uchar* next = bufC.data(); 
 
+    // try to measure grayscale time during streaming operation
+    int64 t0 = cv::getTickCount();
     for (int x = 0; x < cols; x++) {
         // converts first two rows to grayscale
         prev[x] = (54*srcRow0[x][2] + 183*srcRow0[x][1] + 19*srcRow0[x][0]) >> 8; 
         curr[x] = (54*srcRow1[x][2] + 183*srcRow1[x][1] + 19*srcRow1[x][0]) >> 8;
     }
+    grayTicks += cv::getTickCount() - t0; 
     
     // main loop 
     for (int y = 2; y < rows; y++) {
         // convert color row y into the free buffer
+        t0 = cv::getTickCount(); 
         cv::Vec3b* src = frame.ptr<cv::Vec3b>(y); 
         for (int x = 0; x < cols; x++) {
             next[x] = (54*src[x][2] + 183*src[x][1] + 19*src[x][0]) >> 8; 
         }
+        grayTicks += cv::getTickCount() - t0; 
 
+        // techincally where sobel starts in streaming operation
+        t0 = cv::getTickCount(); 
         //prev=y-2, curr=y-1, next=y
         uchar* out = sobelImage.ptr<uchar>(y-1); 
         for (int x = 1; x < cols - 1; x++) {
@@ -188,6 +195,9 @@ cv::Mat performStreamingSobel(cv::Mat& frame) {
             
             out[x] = G; 
         }
+        
+        sobelTicks += cv::getTickCount() - t0; 
+        
         
         // rotate oldest buffer 
         uchar* tmp = prev;
@@ -230,7 +240,7 @@ int main() {
     //calculate FPS of the filter
     int64 start = cv::getTickCount();
     long frames = 0; 
-    const long N = 800;
+    const long N = 1500;
 
     int64 grayTicks = 0; 
     int64 sobelTicks = 0;
@@ -239,7 +249,7 @@ int main() {
     // read each frame
     while (video.read(frame) && frames < N) {
         int64 t1 = cv::getTickCount();
-        cv::Mat sobelImage = performStreamingSobel(frame); 
+        cv::Mat sobelImage = performStreamingSobel(frame, grayTicks, sobelTicks); 
         int64 t2 = cv::getTickCount(); 
        
         streamTicks += t2 - t1; 
@@ -261,25 +271,12 @@ int main() {
     double fps = frames / elapsedSec;                                                                           
     double streamAvg = (double)(streamTicks / frames) / freq;                                                   
                                                                                                                  
-    std::cout << "FPS: " << fps << std::endl;                                                                   
-    std::cout << "Avg stream time: " << streamAvg * 1000.0 << "ms" << std::endl;                                
-    std::cout << "Avg total time: " << (elapsedSec / frames) * 1000.0 << " ms" << std::endl;                    
+    std::cout << "FPS: " << fps << std::endl;
+    std::cout << "Avg gray time : " << (grayTicks  / (double)frames) / freq * 1000.0 << " ms\n";
+    std::cout << "Avg sobel time: " << (sobelTicks / (double)frames) / freq * 1000.0 << " ms\n";
+    std::cout << "Avg stream time: " << (streamTicks / (double)frames) / freq * 1000.0 << " ms\n";
     std::cout << "Stream time total: " << (streamTicks / freq) << "s" << std::endl;                             
     std::cout << "Total time: " << elapsedSec << " s" << std::endl;
-/*
-    double freq = cv::getTickFrequency(); 
-    double elapsedSec = (end - start) / freq;
-    double fps = frames / elapsedSec;
-    double grayAvg = (double)(grayTicks / frames) / freq; 
-    double sobelAvg = (double)(sobelTicks / frames) / freq; 
-    
-    std::cout << "FPS: " << fps << std::endl; 
-    std::cout << "Avg gray time: " << grayAvg * 1000.0 << "ms" << std::endl;
-    std::cout << "Avg sobel time: " << sobelAvg * 1000.0 << "ms" << std::endl;
-    std::cout << "Avg total time: " << (elapsedSec / frames) * 1000.0 << " ms" << std::endl;
-    std::cout << "\nGrayscale time: " << (grayTicks / freq) << "s" << std::endl; 
-    std::cout << "Sobel time: " << (sobelTicks / freq) << "s" << std::endl; 
-    std::cout << "Total time: " << ((end - start) / freq) << " s" << std::endl; */
 
     return 0;
 }

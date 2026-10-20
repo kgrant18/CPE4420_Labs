@@ -1,12 +1,12 @@
 CXX = g++
-CXXFLAGS = -O3 -march=native -Wall -Wextra $(shell pkg-config --cflags opencv4)
-#CXXFLAGS = -O3 -fno-tree-loop-vectorize -fno-tree-slp-vectorize -Wall -Wextra $(shell pkg-config --cflags opencv4)
 #CXXFLAGS = -O0 -Wall -Wextra $(shell pkg-config --cflags opencv4)
+#CXXFLAGS = -O3 -fno-tree-loop-vectorize -fno-tree-slp-vectorize -Wall -Wextra $(shell pkg-config --cflags opencv4)
+CXXFLAGS = -O3 -Wall -Wextra $(shell pkg-config --cflags opencv4)
 LIBS = $(shell pkg-config --libs opencv4)
 
-TARGET = sobel_filter
-SRC = sobel_filter.cpp
-OBJ = sobel_filter.o 
+TARGET = streamingSobel
+SRC = streamingSobel.cpp
+OBJ = streamingSobel.o 
 
 all: $(TARGET)
 
