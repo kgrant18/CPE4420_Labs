@@ -4,9 +4,9 @@ CXX = g++
 CXXFLAGS = -O3 -pthread -Wall -Wextra $(shell pkg-config --cflags opencv4)
 LIBS = $(shell pkg-config --libs opencv4)
 
-TARGET = streamingSobel
-SRC = streamingSobel.cpp
-OBJ = streamingSobel.o 
+TARGET = streamingSobelBaseline
+SRC = streamingSobelBaseline.cpp
+OBJ = streamingSobelBaseline.o 
 
 all: $(TARGET)
 
