@@ -123,8 +123,13 @@ cv::Mat performSobelOperation(cv::Mat& grayImage) {
 *              reduces the memory passes
 *
 * param grayImage: cv::Mat&: The current (color) frame being processed
+*                  cv::Mat &SobelImage: the image being written to by all threads
+*                  int startRow: the row number for the given thread to start
+*                  int endRow: the row number for the given thread to end
+*                  int64 &grayTicks: accumulated time for grayscale across all threads
+*                  int64 &sobelTicks: accumulated time for sobel across all threads
 *
-* return: cv::Mat 
+* return: void
 *
 **************************************************************************/
 void performStreamingSobel(const cv::Mat &frame, cv::Mat &sobelImage, int startRow, int endRow, int64 &grayTicks, int64 &sobelTicks) {
@@ -216,6 +221,20 @@ void performStreamingSobel(const cv::Mat &frame, cv::Mat &sobelImage, int startR
         next = tmp; 
     }
 }
+
+/**************************************************************************
+* Function: assignWorkersForSobel
+* 
+* Description: creates numThreads worker threads for parallelization 
+*
+* param grayImage: cv::Mat &frame: current frame being processed
+*                  int numThreads: number of threads to create
+*                  int64 &grayTicks: accumulated time for grayscale across all threads
+*                  int64 &sobelTicks: accumulated time for sobel across all threads
+
+* return: cv::Mat 
+*
+**************************************************************************/
 
 cv::Mat assignWorkersForSobel(const cv::Mat &frame, int numThreads, int64 &grayTicks, int64 &sobelTicks) {
     const int rows = frame.rows; 
