@@ -12,108 +12,19 @@ grayscale, then applies a Sobel edge-detection filter
 
 #include "sobel_filter.h"
 
-/**************************************************************************
-* Function: generateGrayImage
-* 
-* Description: Converts each frame into a gray scale value
-*
-* param frame: cv::Mat&: The current frame to be converted into gray scale 
-*
-* return: cv::Mat 
-*
-**************************************************************************/
+void initWorkspace(Workspace& workspace, int rows, int columns, int numThreads) {
+    // initializing to zeroes is important so that row/col 0 and last row/col are deterministic
+    workspace.out = cv::Mat::zeros(rows, columns, CV_8UC1);     
 
+    // scale according to thread count
+    workspace.threadBuffers.resize(numThreads);
 
-cv::Mat generateGrayImage(cv::Mat& frame) {
-    //create grayImage for storing gray frames/pixels
-    cv::Mat grayImage(frame.rows, frame.cols, CV_8UC1);
-
-    // to iterate over each pixel, need the x and y coordinates
-    for (int y = 0; y < frame.rows; y++) {
-        for (int x = 0; x < frame.cols; x++) {
-            // Extract a pixel
-            // cv::Vec3b pixel = frame.at<cv::Vec3b>(y, x);
-            const cv::Vec3b* row_ptr = frame.ptr<cv::Vec3b>(y); 
-            cv::Vec3b pixel = row_ptr[x];
-
-            // OpenCV stores in BGR format
-            unsigned char B = pixel[0];
-            unsigned char G = pixel[1];
-            unsigned char R = pixel[2];
-
-            // apply grascale algorithm (ITU-R BT.709) 
-            int gray = (54*R + 183*G + 19*B) >> 8;
-            //int gray = 0.2126*R + 0.715*G + 0.0722*B;
-
-            // put grayscale value into grayImage
-            //grayImage.at<unsigned char>(y, x) = gray;
-            unsigned char* row = grayImage.ptr<unsigned char>(y); 
-            row[x] = gray;
-        }
+    // resize each vector length
+    for (auto& b: workspace.threadBuffers) {
+        b.prev.resize(columns);
+        b.curr.resize(columns); 
+        b.next.resize(columns); 
     }
-    
-    return grayImage; 
-}
-
-/**************************************************************************
-* Function: performSobelOperation
-* 
-* Description: Performs the sobel operation on each frame for edge detection
-*
-* param grayImage: cv::Mat&: The gray scale version of the original 4k video
-*
-* return: cv::Mat 
-*
-**************************************************************************/
-
-
-cv::Mat performSobelOperation(cv::Mat& grayImage) {
-    //declare sobelImage for storing result
-    cv::Mat sobelImage(grayImage.rows, grayImage.cols, CV_8UC1);
-    
-    for (int y = 1; y < grayImage.rows - 1; y++) {
-        // get pointers to the 3 rows
-        const unsigned char* row_above = grayImage.ptr<unsigned char>(y - 1);
-        const unsigned char* row_curr = grayImage.ptr<unsigned char>(y); 
-        const unsigned char* row_below = grayImage.ptr<unsigned char>(y + 1); 
-
-        for (int x = 1 ; x < grayImage.cols - 1; x++) {
-            // grab the 3x3 "neighborhood" of pixels
-            int p00 = row_above[x - 1];
-            int p01 = row_above[x]; 
-            int p02 = row_above[x + 1];
-            
-            int p10 = row_curr[x - 1]; 
-            int p11 = row_curr[x]; 
-            int p12 = row_curr[x + 1]; 
-            
-            int p20 = row_below[x - 1];
-            int p21 = row_below[x];
-            int p22 = row_below[x + 1];
-
-                                                                                                                                                                                                                             
-            
-            int Gx = (-1 * p00) + (1 * p02) + (-2 * p10) + (2 * p12) + (-1 * p20) + (1 * p22);
-            int Gy = (1 * p00) + ( 2 * p01) + (1 * p02) + (-1 * p20) + (-2 * p21) + (-1 * p22);
-
-            // magnitude approximation (don't want to square root --> expensive!) 
-            int mag = std::abs(Gx) + std::abs(Gy);
-            //int G = std::sqrt(std::pow(Gx, 2.0) + std::pow(Gy, 2.0));
-            //int G = std::max(std::abs(Gx), std::abs(Gy)) + (std::min(std::abs(Gx), std::abs(Gy)) >> 1);
-
-            // cap the magnitude at 255 
-            if (mag > 255) {
-                mag = 255;
-            }
-
-            //sobelImage.at<unsigned char>(y, x) = mag;
-            unsigned char* row = sobelImage.ptr<unsigned char>(y); 
-            row[x] = mag; 
-
-        }
-    }
-
-    return sobelImage; 
 }
 
 /**************************************************************************
@@ -124,15 +35,14 @@ cv::Mat performSobelOperation(cv::Mat& grayImage) {
 *
 * param grayImage: cv::Mat&: The current (color) frame being processed
 *                  cv::Mat &SobelImage: the image being written to by all threads
+*                  RowBuffers& bufs: prev, curr, and next buffers for each row
 *                  int startRow: the row number for the given thread to start
 *                  int endRow: the row number for the given thread to end
-*                  int64 &grayTicks: accumulated time for grayscale across all threads
-*                  int64 &sobelTicks: accumulated time for sobel across all threads
 *
 * return: void
 *
 **************************************************************************/
-void performStreamingSobel(const cv::Mat &frame, cv::Mat &sobelImage, int startRow, int endRow, int64 &grayTicks, int64 &sobelTicks) {
+void performStreamingSobel(const cv::Mat &frame, cv::Mat &out, RowBuffers& bufs, int startRow, int endRow) {
     const int rows = frame.rows;
     const int cols = frame.cols; 
         
@@ -148,45 +58,31 @@ void performStreamingSobel(const cv::Mat &frame, cv::Mat &sobelImage, int startR
     }
 
 
-    // allocate 3 rotating buffers
-    std::vector<uchar>bufA(cols), bufB(cols), bufC(cols);
+    // assign the 3 row buffers without realloation each func call
+    uchar *prev = bufs.prev.data(); 
+    uchar *curr = bufs.curr.data(); 
+    uchar *next = bufs.next.data();
 
     const cv::Vec3b* srcRow0 = frame.ptr<cv::Vec3b>(first - 1); 
     const cv::Vec3b* srcRow1 = frame.ptr<cv::Vec3b>(first); 
-    
-    // points to address of gray row y-1
-    uchar* prev = bufA.data();
-
-    // points to address gray row y
-    uchar* curr = bufB.data(); 
-
-    // points to address gray row y+1
-    uchar* next = bufC.data(); 
-    
-    // try to measure grayscale time during streaming operation
-    int64 t0 = cv::getTickCount();
+    // priming loop
     for (int x = 0; x < cols; x++) {
         // converts first two rows to grayscale
         prev[x] = (54*srcRow0[x][2] + 183*srcRow0[x][1] + 19*srcRow0[x][0]) >> 8; 
         curr[x] = (54*srcRow1[x][2] + 183*srcRow1[x][1] + 19*srcRow1[x][0]) >> 8;
     }
-    grayTicks += cv::getTickCount() - t0; 
     
     // main loop 
     for (int y = first; y < last; y++) {
         
         // convert color row y into the free buffer
-        t0 = cv::getTickCount(); 
         const cv::Vec3b* src = frame.ptr<cv::Vec3b>(y + 1); 
         for (int x = 0; x < cols; x++) {
             next[x] = (54*src[x][2] + 183*src[x][1] + 19*src[x][0]) >> 8; 
         }
-        grayTicks += cv::getTickCount() - t0; 
 
-        // techincally where sobel starts in streaming operation
-        t0 = cv::getTickCount(); 
         //prev=y-2, curr=y-1, next=y
-        uchar* out = sobelImage.ptr<uchar>(y-1); 
+        uchar* dst = out.ptr<uchar>(y);  
         for (int x = 1; x < cols - 1; x++) {
             // sobel operation per usual
             int p00 = prev[x-1]; 
@@ -208,10 +104,8 @@ void performStreamingSobel(const cv::Mat &frame, cv::Mat &sobelImage, int startR
             if (G > 255)
                 G = 255; 
             
-            out[x] = G; 
+            dst[x] = G; 
         }
-        
-        sobelTicks += cv::getTickCount() - t0; 
         
         
         // rotate oldest buffer 
@@ -232,27 +126,16 @@ void performStreamingSobel(const cv::Mat &frame, cv::Mat &sobelImage, int startR
 *                  int64 &grayTicks: accumulated time for grayscale across all threads
 *                  int64 &sobelTicks: accumulated time for sobel across all threads
 
-* return: cv::Mat 
+* return: void
 *
 **************************************************************************/
 
-cv::Mat assignWorkersForSobel(const cv::Mat &frame, int numThreads, int64 &grayTicks, int64 &sobelTicks) {
-    const int rows = frame.rows; 
-    const int columns = frame.cols;
-
-    // create the output image (initialized all to 0s) 
-    cv::Mat sobelImage = cv::Mat::zeros(rows, columns, CV_8UC1); 
+void assignWorkersForSobel(const cv::Mat &frame, Workspace& workspace, int numThreads) {
+    const int workRows = frame.rows - 2; 
 
     // prepare the threads
     std::vector<std::thread> workers; 
     workers.reserve(numThreads); 
-
-    // each thread gets separate timing counter
-    std::vector<int64> grayTimes(numThreads, 0); 
-    std::vector<int64> sobelTimes(numThreads, 0); 
-
-    // exclude first and last row from calculation
-    int workRows = rows - 2; 
 
     // launch the threads
     for (int i = 0; i < numThreads; i++) {
@@ -262,12 +145,11 @@ cv::Mat assignWorkersForSobel(const cv::Mat &frame, int numThreads, int64 &grayT
 
         workers.emplace_back(
             performStreamingSobel,
-            std::cref(frame),       // passes input frame by constant reference 
-            std::ref(sobelImage),   // passes shared output image by reference so all threads can write to it
+            std::cref(frame),                       // passes input frame by constant reference 
+            std::ref(workspace.out),                // passes shared output image by reference so all threads can write to it
+            std::ref(workspace.threadBuffers[i]),   // passes the thread buffers
             startRow,
-            endRow,
-            std::ref(grayTimes[i]),
-            std::ref(sobelTimes[i])
+            endRow
         ); 
     }
 
@@ -276,16 +158,30 @@ cv::Mat assignWorkersForSobel(const cv::Mat &frame, int numThreads, int64 &grayT
         worker.join(); 
     }
 
-    // accumulate timing results after threads terminate
-    for (int i = 0; i < numThreads; i++) {
-        grayTicks += grayTimes[i]; 
-        sobelTicks += sobelTimes[i]; 
-    }
-
-    return sobelImage;
-
 }
 
+/**************************************************************************
+* Function: checksum
+* 
+* Description: 64-bit FNV-la checksum function applied to every byte of an image
+*              in row-major order to detect if an image has changed (adopted from 
+*              Claude Code)
+*
+* return: uint64_t
+*
+**************************************************************************/
+
+uint64_t checksum(const cv::Mat& image) {
+   uint64_t h = 1469598103934665603ULL;
+   for (int y = 0; y < image.rows; y++) {
+        const uchar* p = image.ptr<uchar>(y); 
+        for (int x = 0; x < image.cols; x++) {
+            h ^= p[x]; h *= 1099511628211ULL;
+        }
+   }
+
+   return h;
+}
 
 
 /**************************************************************************
@@ -299,84 +195,83 @@ cv::Mat assignWorkersForSobel(const cv::Mat &frame, int numThreads, int64 &grayT
 **************************************************************************/
 
 int main(int argc, char *argv[]) {
-    // command line arguments for number of threads
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <numThreads>\n";
+    // default values 
+    int numThreads = 1;
+    int iterations = 30; 
+    std::string input = "4k_video.mp4"; 
+    bool dump = false; 
+
+    // handle command line arguments
+    for (int i = 1; i < argc; i++) {
+        std::string argument = argv[i]; 
+
+        if (argument == "--threads" && (i + 1 < argc)) {
+            numThreads = std::stoi(argv[++i]); 
+        }
+
+        else if (argument == "--iterations" && (i + 1 < argc)) {
+            iterations = std::stoi(argv[++i]);
+        }
+
+        else if (argument == "--input" && (i + 1 < argc)) {
+            input = argv[++i];
+        }
+        
+        else if (argument == "--dump") {
+            dump = true; 
+        }
+
+        else {
+            std::fprintf(stderr, "Usage: %s --threads N --iterations K [--input f] [--dump]\n", argv[0]);
+            return 1; 
+        }
+    }
+
+    if (numThreads < 1 || iterations < 1) {
+        std::fprintf(stderr, "bad arguments\n");
         return 1; 
     }
 
-    // convert to integer
-    int numThreads = std::stoi(argv[1]); 
+    // Setup video outside main loop
+    cv::Mat frame; 
+    {
+        cv::VideoCapture video(input);
+            
+        // error check for safety
+        if (!video.isOpened() || !video.read(frame)) {
+            std::fprintf(stderr, "Could not read frame from %s\n", input.c_str()); 
+            return 1; 
+        }
 
-    if (numThreads < 1) {
-        std::cerr << "Thread count can't be negative\n";
-        return 1; 
-    }
-
-
-    //create openCV object
-    cv::VideoCapture video("4k_video.mp4");
-    
-    // error checking for safety
-    if (!video.isOpened()) {
-        std::cerr << "Could not open video\n";
-        return 1;
     }
 
     // ensures the output cv video is fullscreen and not any larger (problem I had initially)
-    cv::namedWindow("Sobel", cv::WINDOW_NORMAL);
-    cv::setWindowProperty("Sobel", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
+    //cv::namedWindow("Sobel", cv::WINDOW_NORMAL);
+    //cv::setWindowProperty("Sobel", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
 
-    cv::Mat frame; 
+    // initialize workspace outside main loop
+    Workspace workspace;
+    initWorkspace(workspace, frame.rows, frame.cols, numThreads); 
 
-    //calculate FPS of the filter
-    int64 start = cv::getTickCount();
-    long frames = 0; 
-    const long N = 1500;
+    // start initial timer
+    auto t0 = std::chrono::steady_clock::now(); 
+    for (int i = 0; i < iterations; i++) {
+        assignWorkersForSobel(frame, workspace, numThreads); 
+    }
+    auto t1 = std::chrono::steady_clock::now(); 
 
-    int64 grayTicks = 0; 
-    int64 sobelTicks = 0;
-    int64 streamTicks = 0; 
+    // time in ms
+    double loopMs = std::chrono::duration<double, std::milli>(t1 - t0).count(); 
+    std::printf("config=optimized threads=%d iterations=%d checksum=%016llx "   
+                "loop_ms=%.1f ms_per_frame=%.3f\n",
+                numThreads, iterations, (unsigned long long)checksum(workspace.out),
+                loopMs, loopMs / iterations); 
 
-    // read each frame
-    while (video.read(frame) && frames < N) {
-        int64 t1 = cv::getTickCount();
-        cv::Mat sobelImage = assignWorkersForSobel(frame, numThreads, grayTicks, sobelTicks); 
-        int64 t2 = cv::getTickCount(); 
-       
-        streamTicks += t2 - t1; 
-        frames++;
-        
-        // this is turned off when measuring performance
-        //cv::imshow("Sobel", sobelImage);  
-
-        // Wait 1 ms for a key press
-        //if (cv::waitKey(1) == 'q') {
-        //    break;
-        //}
+    if (dump) {
+        cv::imwrite("out_optimized_" + std::to_string(numThreads) + "t.png", workspace.out);
     }
 
-    int64 end = cv::getTickCount();
-    
-    double freq = cv::getTickFrequency();                                                                       
-    double elapsedSec = (end - start) / freq;                                                                   
-    double fps = frames / elapsedSec;                                                                           
-    double streamAvg = (double)(streamTicks / frames) / freq;                                                   
-    
-    std::cout << "Frames processed: " << frames << std::endl;
-    std::cout << "FPS: " << fps << std::endl; 
-    std::cout << "Total grayscale time: " << grayTicks / freq << " s\n"; 
-    std::cout << "Total sobel time: " << sobelTicks / freq << " s\n"; 
-    std::cout << "Total streaming time: " << streamTicks / freq << " s\n";
-    std::cout << "Total execution time: " << elapsedSec << " s\n"; 
 
-    
-    //std::cout << "FPS: " << fps << std::endl;
-    std::cout << "Avg gray time : " << (grayTicks  / (double)frames) / freq * 1000.0 << " ms\n";
-    std::cout << "Avg sobel time: " << (sobelTicks / (double)frames) / freq * 1000.0 << " ms\n";
-    std::cout << "Avg stream time: " << (streamTicks / (double)frames) / freq * 1000.0 << " ms\n";
-    //std::cout << "Stream time total: " << (streamTicks / freq) << "s" << std::endl;                             
-    //std::cout << "Total time: " << elapsedSec << " s" << std::endl;
     
 
     return 0;

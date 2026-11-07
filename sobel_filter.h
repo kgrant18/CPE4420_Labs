@@ -18,10 +18,24 @@ grayscale, then applies a Sobel edge-detection filter for edge detection
 #include <cmath>
 #include <algorithm>
 #include <thread>
+#include <chrono>
+#include <cstdio>
+#include <string>
 
-cv::Mat generateGrayImage(cv::Mat& image);
-cv::Mat performSobelOperation(cv::Mat& grayImage); 
-void performStreamingSobel(const cv::Mat &frame, cv::Mat &sobelImage, int startRow, int endRow, int64 &grayTicks, int64 &sobelTicks);
-cv::Mat assignWorkersForSobel(const cv::Mat &frame, int numThreads, int64 &grayTicks, int64 &sobelTicks); 
+struct RowBuffers {
+    std::vector<uchar> prev, curr, next;    // one set per thread
+}; 
+
+struct Workspace {
+    cv:: Mat out;                         // zeroes, allocated once
+    std::vector<RowBuffers> threadBuffers;     // row buffers, allocated once
+};
+
+void initWorkspace(Workspace &workspace, int rows, int columns, int numThreads); 
+void generateGrayImage(const cv::Mat& frame, cv::Mat& gray); 
+void performSobelOperation(const cv::Mat& gray, cv::Mat& out); 
+void performStreamingSobel(const cv::Mat& frame, cv::Mat& out, RowBuffers& bufs, int startRow, int endRow);
+void assignWorkersForSobel(const cv::Mat& frame, Workspace& ws, int numThreads); 
+uint64_t checksum(const cv::Mat& image); 
 
 #endif // _SOBEL_FILTER_H
