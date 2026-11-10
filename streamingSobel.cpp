@@ -174,8 +174,8 @@ void assignWorkersForSobel(const cv::Mat &frame, Workspace& workspace, int numTh
 **************************************************************************/
 bool loadFrame(const std::string& file_path, cv::Mat& frame) {
     // checks if the last 4 chars of file_path ends with .ppm 
-    if (file_path.size() >= 4 && file_path.compare(path.size() - 4, 4, ".ppm") == 0) {
-        frame = cv::imread(path, cv::IMREAD_COLOR);
+    if (file_path.size() >= 4 && file_path.compare(file_path.size() - 4, 4, ".ppm") == 0) {
+        frame = cv::imread(file_path, cv::IMREAD_COLOR);
         return !frame.empty();  
     }
 
@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
     std::string input = "frame.ppm"; 
     bool dump = false; 
     std::string saveFrame;
- dddkk
+ 
     // handle command line arguments
     for (int i = 1; i < argc; i++) {
         std::string argument = argv[i]; 
