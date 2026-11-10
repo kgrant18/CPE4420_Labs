@@ -36,6 +36,7 @@ void generateGrayImage(const cv::Mat& frame, cv::Mat& gray);
 void performSobelOperation(const cv::Mat& gray, cv::Mat& out); 
 void performStreamingSobel(const cv::Mat& frame, cv::Mat& out, RowBuffers& bufs, int startRow, int endRow);
 void assignWorkersForSobel(const cv::Mat& frame, Workspace& ws, int numThreads); 
+bool loadFrame(const std::string& file_path, cv::Mat& frame); 
 uint64_t checksum(const cv::Mat& image); 
 
 #endif // _SOBEL_FILTER_H

@@ -2,9 +2,9 @@ CXX = g++
 CXXFLAGS = -O3 -pthread -Wall -Wextra $(shell pkg-config --cflags opencv4)
 LIBS = $(shell pkg-config --cflags --libs opencv4)
 
-TARGET = sobel_optimized
-SRC = streamingSobel.cpp
-OBJ = streamingSobel.o 
+TARGET = original
+SRC = sobel_original.cpp
+OBJ = sobel_original.o 
 
 all: $(TARGET)
 
