@@ -1,0 +1,15 @@
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3515.5 ms_per_frame=25.111
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3518.0 ms_per_frame=25.129
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3495.8 ms_per_frame=24.970
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3494.5 ms_per_frame=24.961
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3512.5 ms_per_frame=25.089
+
+ Performance counter stats for './sobel_optimized --threads 2 --iterations 140' (5 runs):
+
+     8,674,150,529      task-clock                       #    1.649 CPUs utilized               ( +-  0.10% )
+               461      context-switches                 #   53.146 /sec                        ( +-  1.88% )
+                 0      cpu-migrations                   #    0.000 /sec                      
+            13,760      page-faults                      #    1.586 K/sec                       ( +-  0.00% )
+
+           5.26128 +- 0.00501 seconds time elapsed  ( +-  0.10% )
+

@@ -1,0 +1,219 @@
+  branch-instructions OR branches                    [Hardware event]
+  branch-misses                                      [Hardware event]
+  bus-cycles                                         [Hardware event]
+  cache-misses                                       [Hardware event]
+  cache-references                                   [Hardware event]
+  cpu-cycles OR cycles                               [Hardware event]
+  instructions                                       [Hardware event]
+
+cache:
+  L1-dcache-loads OR armv8_cortex_a53/L1-dcache-loads/
+  L1-dcache-load-misses OR armv8_cortex_a53/L1-dcache-load-misses/
+  L1-dcache-prefetch-misses OR armv8_cortex_a53/L1-dcache-prefetch-misses/
+  L1-icache-loads OR armv8_cortex_a53/L1-icache-loads/
+  L1-icache-load-misses OR armv8_cortex_a53/L1-icache-load-misses/
+  dTLB-load-misses OR armv8_cortex_a53/dTLB-load-misses/
+  iTLB-load-misses OR armv8_cortex_a53/iTLB-load-misses/
+  branch-loads OR armv8_cortex_a53/branch-loads/
+  branch-load-misses OR armv8_cortex_a53/branch-load-misses/
+  node-loads OR armv8_cortex_a53/node-loads/
+  node-stores OR armv8_cortex_a53/node-stores/
+  br_immed_retired OR armv8_cortex_a53/br_immed_retired/[Kernel PMU event]
+  br_mis_pred OR armv8_cortex_a53/br_mis_pred/       [Kernel PMU event]
+  br_pred OR armv8_cortex_a53/br_pred/               [Kernel PMU event]
+  bus_access OR armv8_cortex_a53/bus_access/         [Kernel PMU event]
+  bus_cycles OR armv8_cortex_a53/bus_cycles/         [Kernel PMU event]
+  cid_write_retired OR armv8_cortex_a53/cid_write_retired/[Kernel PMU event]
+  cpu_cycles OR armv8_cortex_a53/cpu_cycles/         [Kernel PMU event]
+  exc_return OR armv8_cortex_a53/exc_return/         [Kernel PMU event]
+  exc_taken OR armv8_cortex_a53/exc_taken/           [Kernel PMU event]
+  inst_retired OR armv8_cortex_a53/inst_retired/     [Kernel PMU event]
+  l1d_cache OR armv8_cortex_a53/l1d_cache/           [Kernel PMU event]
+  l1d_cache_refill OR armv8_cortex_a53/l1d_cache_refill/[Kernel PMU event]
+  l1d_cache_wb OR armv8_cortex_a53/l1d_cache_wb/     [Kernel PMU event]
+  l1d_tlb_refill OR armv8_cortex_a53/l1d_tlb_refill/ [Kernel PMU event]
+  l1i_cache OR armv8_cortex_a53/l1i_cache/           [Kernel PMU event]
+  l1i_cache_refill OR armv8_cortex_a53/l1i_cache_refill/[Kernel PMU event]
+  l1i_tlb_refill OR armv8_cortex_a53/l1i_tlb_refill/ [Kernel PMU event]
+  l2d_cache OR armv8_cortex_a53/l2d_cache/           [Kernel PMU event]
+  l2d_cache_refill OR armv8_cortex_a53/l2d_cache_refill/[Kernel PMU event]
+  l2d_cache_wb OR armv8_cortex_a53/l2d_cache_wb/     [Kernel PMU event]
+  ld_retired OR armv8_cortex_a53/ld_retired/         [Kernel PMU event]
+  mem_access OR armv8_cortex_a53/mem_access/         [Kernel PMU event]
+  memory_error OR armv8_cortex_a53/memory_error/     [Kernel PMU event]
+  pc_write_retired OR armv8_cortex_a53/pc_write_retired/[Kernel PMU event]
+  st_retired OR armv8_cortex_a53/st_retired/         [Kernel PMU event]
+  unaligned_ldst_retired OR armv8_cortex_a53/unaligned_ldst_retired/[Kernel PMU event]
+
+branch:
+  br_cond
+       [Conditional branch executed. Unit: armv8_cortex_a53]
+  br_cond_mispred
+       [Conditional branch mispredicted. Unit: armv8_cortex_a53]
+  br_indirect_mispred
+       [Indirect branch mispredicted. Unit: armv8_cortex_a53]
+  br_indirect_mispred_addr
+       [Indirect branch mispredicted because of address miscompare. Unit:
+        armv8_cortex_a53]
+  br_indirect_spec
+       [Branch speculatively executed,indirect branch. Unit: armv8_cortex_a53]
+
+bus:
+  bus_access_rd
+       [Bus access read. Unit: armv8_cortex_a53]
+  bus_access_wr
+       [Bus access write. Unit: armv8_cortex_a53]
+
+cache:
+  ext_snoop
+       [SCU Snooped data from another CPU for this CPU. Unit: armv8_cortex_a53]
+  prefetch_linefill
+       [Linefill because of prefetch. Unit: armv8_cortex_a53]
+  prefetch_linefill_drop
+       [Instruction Cache Throttle occurred. Unit: armv8_cortex_a53]
+  read_alloc
+       [Read allocate mode. Unit: armv8_cortex_a53]
+  read_alloc_enter
+       [Entering read allocate mode. Unit: armv8_cortex_a53]
+
+hwmon:
+  temp1
+       [Temperature in unit cpu_thermal named temp1. Unit: hwmon_cpu_thermal]
+
+memory:
+  ext_mem_req
+       [External memory request. Unit: armv8_cortex_a53]
+  ext_mem_req_nc
+       [Non-cacheable external memory request. Unit: armv8_cortex_a53]
+
+other:
+  exc_fiq
+       [Exception taken,FIQ. Unit: armv8_cortex_a53]
+  exc_irq
+       [Exception taken,IRQ. Unit: armv8_cortex_a53]
+  l1d_cache_err
+       [L1 Data Cache (data,tag or dirty) memory error,correctable or
+        non-correctable. Unit: armv8_cortex_a53]
+  l1i_cache_err
+       [L1 Instruction Cache (data or tag) memory error. Unit:
+        armv8_cortex_a53]
+  pre_decode_err
+       [Pre-decode error. Unit: armv8_cortex_a53]
+  tlb_err
+       [TLB memory error. Unit: armv8_cortex_a53]
+
+pipeline:
+  agu_dep_stall
+       [Cycles there is an interlock for a load/store instruction waiting for
+        data to calculate the address in the AGU. Unit: armv8_cortex_a53]
+  decode_dep_stall
+       [Cycles the DPU IQ is empty and there is a pre-decode error being
+        processed. Unit: armv8_cortex_a53]
+  ic_dep_stall
+       [Cycles the DPU IQ is empty and there is an instruction cache miss
+        being processed. Unit: armv8_cortex_a53]
+  iutlb_dep_stall
+       [Cycles the DPU IQ is empty and there is an instruction micro-TLB miss
+        being processed. Unit: armv8_cortex_a53]
+  ld_dep_stall
+       [Cycles there is a stall in the Wr stage because of a load miss. Unit:
+        armv8_cortex_a53]
+  other_interlock_stall
+       [Cycles there is an interlock other than Advanced SIMD/Floating-point
+        instructions or load/store instruction. Unit: armv8_cortex_a53]
+  other_iq_dep_stall
+       [Cycles that the DPU IQ is empty and that is not because of a recent
+        micro-TLB miss,instruction cache miss or pre-decode error. Unit:
+        armv8_cortex_a53]
+  simd_dep_stall
+       [Cycles there is an interlock for an Advanced SIMD/Floating-point
+        operation. Unit: armv8_cortex_a53]
+  st_dep_stall
+       [Cycles there is a stall in the Wr stage because of a store. Unit:
+        armv8_cortex_a53]
+  stall_sb_full
+       [Data Write operation that stalls the pipeline because the store buffer
+        is full. Unit: armv8_cortex_a53]
+
+software:
+  alignment-faults
+       [Number of kernel handled memory alignment faults. Unit: software]
+  bpf-output
+       [An event used by BPF programs to write to the perf ring buffer. Unit:
+        software]
+  cgroup-switches
+       [Number of context switches to a task in a different cgroup. Unit:
+        software]
+  context-switches
+       [Number of context switches [This event is an alias of cs]. Unit:
+        software]
+  cpu-clock
+       [Per-CPU high-resolution timer based event. Unit: software]
+  cpu-migrations
+       [Number of times a process has migrated to a new CPU [This event is an
+        alias of migrations]. Unit: software]
+  cs
+       [Number of context switches [This event is an alias of
+        context-switches]. Unit: software]
+  dummy
+       [A placeholder event that doesn't count anything. Unit: software]
+  emulation-faults
+       [Number of kernel handled unimplemented instruction faults handled
+        through emulation. Unit: software]
+  faults
+       [Number of page faults [This event is an alias of page-faults]. Unit:
+        software]
+  major-faults
+       [Number of major page faults. Major faults require I/O to handle. Unit:
+        software]
+  migrations
+       [Number of times a process has migrated to a new CPU [This event is an
+        alias of cpu-migrations]. Unit: software]
+  minor-faults
+       [Number of minor page faults. Minor faults don't require I/O to handle.
+        Unit: software]
+  page-faults
+       [Number of page faults [This event is an alias of faults]. Unit:
+        software]
+  task-clock
+       [Per-task high-resolution timer based event. Unit: software]
+
+tool:
+  duration_time
+       [Wall clock interval time in nanoseconds. Unit: tool]
+  has_pmem
+       [1 if persistent memory installed otherwise 0. Unit: tool]
+  num_cores
+       [Number of cores. A core consists of 1 or more thread,with each thread
+        being associated with a logical Linux CPU. Unit: tool]
+  num_cpus
+       [Number of logical Linux CPUs. There may be multiple such CPUs on a
+        core. Unit: tool]
+  num_cpus_online
+       [Number of online logical Linux CPUs. There may be multiple such CPUs
+        on a core. Unit: tool]
+  num_dies
+       [Number of dies. Each die has 1 or more cores. Unit: tool]
+  num_packages
+       [Number of packages. Each package has 1 or more die. Unit: tool]
+  slots
+       [Number of functional units that in parallel can execute parts of an
+        instruction. Unit: tool]
+  smt_on
+       [1 if simultaneous multithreading (aka hyperthreading) is enable
+        otherwise 0. Unit: tool]
+  system_time
+       [System/kernel time in nanoseconds. Unit: tool]
+  user_time
+       [User (non-kernel) time in nanoseconds. Unit: tool]
+  rNNN                                               [Raw event descriptor]
+  armv8_cortex/threshold_count,event=0..0xffff,long,.../modifier[Raw event descriptor]
+       [(see 'man perf-list' or 'man perf-record' on how to encode it)]
+  breakpoint//modifier                               [Raw event descriptor]
+  hwmon_cpu_thermal//modifier                        [Raw event descriptor]
+  hwmon_rpi_volt//modifier                           [Raw event descriptor]
+  kprobe/retprobe/modifier                           [Raw event descriptor]
+  software//modifier                                 [Raw event descriptor]
+  tool//modifier                                     [Raw event descriptor]
+  tracepoint//modifier                               [Raw event descriptor]
+  mem:<addr>[/len][:access]                          [Hardware breakpoint]
