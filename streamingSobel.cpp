@@ -161,6 +161,33 @@ void assignWorkersForSobel(const cv::Mat &frame, Workspace& workspace, int numTh
 }
 
 /**************************************************************************
+* Function: loadFrame
+* 
+* Description: loads one BGR frame, either from .ppm file or by decoding
+               the first frame of a video file
+* 
+* param file_path: const std::string&: video file_path to be decoded
+* param frame:     cv::Mat& the frame to be analyzed
+* 
+* return: bool
+*
+**************************************************************************/
+bool loadFrame(const std::string& file_path, cv::Mat& frame) {
+    // checks if the last 4 chars of file_path ends with .ppm 
+    if (file_path.size() >= 4 && file_path.compare(file_path.size() - 4, 4, ".ppm") == 0) {
+        frame = cv::imread(file_path, cv::IMREAD_COLOR);
+        return !frame.empty();  
+    }
+
+    // else does the normal video decoding 
+    else {
+        cv::VideoCapture video(file_path);
+        return video.isOpened() && video.read(frame);
+    }
+}
+
+
+/**************************************************************************
 * Function: checksum
 * 
 * Description: 64-bit FNV-la checksum function applied to every byte of an image
@@ -198,9 +225,10 @@ int main(int argc, char *argv[]) {
     // default values 
     int numThreads = 1;
     int iterations = 30; 
-    std::string input = "4k_video.mp4"; 
+    std::string input = "frame.ppm"; 
     bool dump = false; 
-
+    std::string saveFrame;
+ 
     // handle command line arguments
     for (int i = 1; i < argc; i++) {
         std::string argument = argv[i]; 
@@ -221,8 +249,13 @@ int main(int argc, char *argv[]) {
             dump = true; 
         }
 
+        else if (argument == "--save-frame" && (i + 1 < argc)) {
+            saveFrame = argv[++i];
+        }
+
+
         else {
-            std::fprintf(stderr, "Usage: %s --threads N --iterations K [--input f] [--dump]\n", argv[0]);
+            std::fprintf(stderr, "Usage: %s --threads N --iterations K [--input f] [--dump] [--save-frame f]\n", argv[0]);
             return 1; 
         }
     }
@@ -234,16 +267,18 @@ int main(int argc, char *argv[]) {
 
     // Setup video outside main loop
     cv::Mat frame; 
-    {
-        cv::VideoCapture video(input);
-            
-        // error check for safety
-        if (!video.isOpened() || !video.read(frame)) {
-            std::fprintf(stderr, "Could not read frame from %s\n", input.c_str()); 
-            return 1; 
-        }
-
+    if (!loadFrame(input, frame)) {
+        std::fprintf(stderr, "Could not load frame from %s\n", input.c_str()); 
+        return 1; 
     }
+
+    // one time write
+    if (!saveFrame.empty()) {
+        cv::imwrite(saveFrame, frame); 
+        std::printf("saved %dx%d frame to %s\n", frame.cols, frame.rows, saveFrame.c_str());
+        return 0; 
+    }
+    
 
     // ensures the output cv video is fullscreen and not any larger (problem I had initially)
     //cv::namedWindow("Sobel", cv::WINDOW_NORMAL);

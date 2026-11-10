@@ -55,7 +55,7 @@ void generateGrayImage(cv::Mat& frame, cv::Mat& gray) {
 * Description: Performs the sobel operation on each frame for edge detection
 *
 * param gray: cv::Mat&: The gray scale version of the original 4k video
-* param out        cv::Mat&: The output image
+* param out:  cv::Mat&: The output image
 *
 * return: cv::Mat 
 *
@@ -98,6 +98,33 @@ void performSobelOperation(cv::Mat& gray, cv::Mat& out) {
 }
 
 /**************************************************************************
+* Function: loadFrame
+* 
+* Description: loads one BGR frame, either from .ppm file or by decoding
+               the first frame of a video file
+* 
+* param file_path: const std::string&: video file_path to be decoded
+* param frame:     cv::Mat& the frame to be analyzed
+* 
+* return: bool
+*
+**************************************************************************/
+
+bool loadFrame(const std::string& file_path, cv::Mat& frame) {
+    // checks if the last 4 chars of file_path ends with .ppm 
+    if (file_path.size() >= 4 && file_path.compare(path.size() - 4, 4, ".ppm") == 0) {
+        frame = cv::imread(path, cv::IMREAD_COLOR);
+        return !frame.empty();  
+    }
+    
+    // else does the normal video decoding 
+    else {
+        cv::VideoCapture video(file_path); 
+        return video.isOpened() && video.read(frame); 
+    }
+}
+
+/**************************************************************************
 * Function: checksum
 * 
 * Description: 64-bit FNV-la checksum function applied to every byte of an image
@@ -133,14 +160,15 @@ uint64_t checksum(const cv::Mat& image) {
 int main(int argc, char *argv[]) {
     // default values 
     int iterations = 30; 
-    std::string input = "4k_video.mp4"; 
+    std::string input = "frame.ppm"; 
     bool dump = false; 
+    std::string saveFrame;
 
     // handle command line arguments
     for (int i = 1; i < argc; i++) {
         std::string argument = argv[i]; 
 
-        else if (argument == "--iterations" && (i + 1 < argc)) {
+        if (argument == "--iterations" && (i + 1 < argc)) {
             iterations = std::stoi(argv[++i]);
         }
 
@@ -158,24 +186,20 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (numThreads < 1 || iterations < 1) {
-        std::fprintf(stderr, "bad arguments\n");
+    // Setup video outside main loop
+    cv::Mat frame;
+    if (!loadFrame(input, frame)) {
+        std::fprintf(stderr, "Could not load frame from %s\n", input.c_str());
         return 1; 
     }
 
-    // Setup video outside main loop
-    cv::Mat frame; 
-    {
-        cv::VideoCapture video(input);
-            
-        // error check for safety
-        if (!video.isOpened() || !video.read(frame)) {
-            std::fprintf(stderr, "Could not read frame from %s\n", input.c_str()); 
-            return 1; 
-        }
-
+    // one time write
+    if (!saveFrame.empty()) {
+        cv::imwrite(saveFrame, frame);
+        std::printf("saved %d%d frame to %s\n", frame.cols, frame.rows, saveFrame.c_str());
+        return 0;
     }
-
+ 
     // ensures the output cv video is fullscreen and not any larger (problem I had initially)
     //cv::namedWindow("Sobel", cv::WINDOW_NORMAL);
     //cv::setWindowProperty("Sobel", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
@@ -200,7 +224,7 @@ int main(int argc, char *argv[]) {
                 loopMs, loopMs / iterations); 
 
     if (dump) {
-        cv::imwrite("out_original_" + std::to_string(numThreads) + "t.png", out);
+        cv::imwrite("out_original.png", out);
     }
 
     return 0;
