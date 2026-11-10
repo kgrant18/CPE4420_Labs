@@ -1,0 +1,6 @@
+*.o
+original
+sobel_optimized
+*.png
+*.mp4
+*.ppm
