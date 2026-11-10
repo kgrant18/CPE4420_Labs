@@ -1,0 +1,13 @@
+config=optimized threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=6238.4 ms_per_frame=44.560
+config=optimized threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=6241.9 ms_per_frame=44.585
+config=optimized threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=6234.9 ms_per_frame=44.535
+config=optimized threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=6244.0 ms_per_frame=44.600
+config=optimized threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=6233.6 ms_per_frame=44.526
+
+ Performance counter stats for './sobel_optimized --threads 1 --iterations 140' (5 runs):
+
+     2,481,057,470      cache-references:u                                                      ( +-  0.00% )
+        94,036,669      cache-misses:u                   #    3.79% of all cache refs           ( +-  0.08% )
+
+            8.0109 +- 0.0116 seconds time elapsed  ( +-  0.15% )
+

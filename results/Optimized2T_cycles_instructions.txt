@@ -1,0 +1,13 @@
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3491.1 ms_per_frame=24.937
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3512.6 ms_per_frame=25.090
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3486.2 ms_per_frame=24.902
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3495.4 ms_per_frame=24.967
+config=optimized threads=2 iterations=140 checksum=0f7752776a1bc383 loop_ms=3489.7 ms_per_frame=24.926
+
+ Performance counter stats for './sobel_optimized --threads 2 --iterations 140' (5 runs):
+
+    11,530,593,039      cycles:u                                                                ( +-  0.05% )
+     5,532,444,494      instructions:u                   #    0.48  insn per cycle              ( +-  0.00% )
+
+           5.24866 +- 0.00430 seconds time elapsed  ( +-  0.08% )
+

@@ -1,0 +1,13 @@
+config=original threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=51945.8 ms_per_frame=371.041
+config=original threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=51933.0 ms_per_frame=370.950
+config=original threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=51941.2 ms_per_frame=371.008
+config=original threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=51928.0 ms_per_frame=370.915
+config=original threads=1 iterations=140 checksum=0f7752776a1bc383 loop_ms=51926.0 ms_per_frame=370.900
+
+ Performance counter stats for './original --iterations 140' (5 runs):
+
+    74,164,444,304      cycles:u                                                                ( +-  0.01% )
+    79,571,058,893      instructions:u                   #    1.07  insn per cycle              ( +-  0.00% )
+
+          53.67947 +- 0.00660 seconds time elapsed  ( +-  0.01% )
+
